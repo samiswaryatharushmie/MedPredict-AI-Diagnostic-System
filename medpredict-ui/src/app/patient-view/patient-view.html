@@ -1,0 +1,104 @@
+<div class="glass-panel">
+  <div class="header">
+    <h1>🩺 MedPredict AI</h1>
+    <p>Intelligent Clinical Diagnostics</p>
+  </div>
+
+  <div class="input-grid">
+    <div class="input-group">
+      <label>Patient Age</label>
+      <input type="number" [(ngModel)]="patientData.Age" placeholder="e.g. 45">
+    </div>
+    <div class="input-group">
+      <label>Glucose Level (mg/dL)</label>
+      <input type="number" [(ngModel)]="patientData.Glucose" placeholder="e.g. 140">
+    </div>
+    <div class="input-group">
+      <label>Blood Pressure (mm Hg)</label>
+      <input type="number" [(ngModel)]="patientData.BloodPressure" placeholder="e.g. 80">
+    </div>
+    <div class="input-group">
+      <label>BMI</label>
+      <input type="number" [(ngModel)]="patientData.BMI" placeholder="e.g. 28.5">
+    </div>
+    <div class="input-group">
+      <label>Insulin Level (IU/mL)</label>
+      <input type="number" [(ngModel)]="patientData.Insulin" placeholder="e.g. 120">
+    </div>
+    <div class="input-group">
+      <label>Prior Pregnancies</label>
+      <input type="number" [(ngModel)]="patientData.Pregnancies" placeholder="e.g. 1">
+    </div>
+  </div>
+
+  <div class="action-section">
+    <button class="btn-predict" (click)="runPrediction()" [disabled]="isLoading">
+      <span *ngIf="!isLoading">Run Neural Analysis 🚀</span>
+      <span *ngIf="isLoading" class="loader-text">
+        <span class="spinner"></span> Analyzing Vitals...
+      </span>
+    </button>
+  </div>
+
+  <div class="result-card" *ngIf="predictionResult || errorMessage" 
+       [class.danger]="predictionResult?.label === 'Diabetic'" 
+       [class.safe]="predictionResult?.label === 'Non-Diabetic'">
+       
+    <p class="error-text" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+    <div *ngIf="predictionResult">
+      <h2>Diagnosis: <span>{{ predictionResult.label }}</span></h2>
+      
+      <div class="confidence-bar-bg">
+        <div class="confidence-bar-fill" [style.width.%]="predictionResult.confidence_score * 100"></div>
+      </div>
+      <p class="confidence-text">AI Confidence: {{ predictionResult.confidence_score * 100 | number:'1.1-2' }}%</p>
+
+      @if (predictionResult?.explanation) {
+        <div class="insight-container">
+          <div class="insight-header">
+            <h4>🧠 AI Clinical Insights</h4>
+          </div>
+          <div class="insight-grid">
+            <div class="insight-card patient-card">
+              <h5>💬 Actionable Advice</h5>
+              <p>{{ predictionResult.patient_message }}</p>
+            </div>
+            <div class="insight-card tech-card">
+              <h5>⚙️ Key Risk Factors</h5>
+              @for (factor of predictionResult.top_risk_factors; track factor.name) {
+                <div class="factor-row">
+                  <span class="factor-name">{{ factor.name }}</span>
+                  <span class="factor-weight">{{ factor.impact }}% impact</span>
+                </div>
+                <div class="factor-bar-bg">
+                  <div class="factor-bar-fill" [style.width.%]="factor.impact * 2"></div> 
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="chat-container">
+        <div class="insight-header">
+          <h4>🤖 Virtual Clinical Consultant</h4>
+        </div>
+        <div class="chat-window">
+          @for (msg of chatHistory; track msg) {
+            <div class="message" [ngClass]="msg.role">
+              <span class="avatar">{{ msg.role === 'bot' ? '🧠' : '👤' }}</span> 
+              <div class="bubble"[innerHTML]="formatMessage(msg.text)"></div>
+            </div>
+          }
+        </div>
+        <div class="chat-input">
+          <input [(ngModel)]="userQuery" (keyup.enter)="askConsultant()" placeholder="Ask the AI about your diagnosis, diet, or next steps...">
+          <button (click)="askConsultant()" [disabled]="isChatLoading">
+            {{ isChatLoading ? 'Thinking...' : 'Send' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

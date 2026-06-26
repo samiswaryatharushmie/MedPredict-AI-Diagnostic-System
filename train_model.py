@@ -2,7 +2,7 @@ import pandas as pd
 import mysql.connector
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-import joblib
+import pickle  # <-- 1. Changed to pickle to match your main.py server perfectly!
 
 print("🧠 Connecting to database to fetch training data...")
 
@@ -33,7 +33,6 @@ except mysql.connector.Error as err:
     exit()
 
 # 2. Separate Features (X) and Target Label (y)
-# Since the original CSV had the 'Outcome' column, let's read the outcome from the local CSV to match it up easily
 csv_data = pd.read_csv('diabetes.csv')
 y = csv_data['Outcome']
 X = df # Our features from the database
@@ -51,6 +50,8 @@ model.fit(X_train, y_train)
 accuracy = model.score(X_test, y_test)
 print(f"🎯 Model Training Complete! Accuracy: {accuracy * 100:.2f}%")
 
-# 4. Save the trained model brain to a file
-joblib.dump(model, 'diabetes_model.pkl')
-print("💾 Model saved successfully as 'diabetes_model.pkl'!")
+# 4. Save the trained model brain to a NEW file to bypass Windows lock
+with open('brain_v2.pkl', 'wb') as f:
+    pickle.dump(model, f)  # <-- 2. Using pickle to save it!
+
+print("💾 Model saved successfully as 'brain_v2.pkl'!")
